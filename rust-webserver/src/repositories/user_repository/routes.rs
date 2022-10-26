@@ -12,7 +12,6 @@ use chrono::offset::Utc;
 use chrono::DateTime;
 use rand::distributions::{Alphanumeric, DistString};
 use reqwest::header::{HeaderMap};
-use time::OffsetDateTime;
 
 // need to change this later when load balancer giving all correct IP's
 static RTMP_OUT_LOCATION: &str = "rtmp://43.205.21.202:1935/{app}/{stream}";
