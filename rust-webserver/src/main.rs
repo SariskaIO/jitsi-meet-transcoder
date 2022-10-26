@@ -1,7 +1,7 @@
-use actix_web::{get, web, App, HttpServer, Responder};
+use actix_web::{web, App, HttpServer};
 mod repositories;
 pub use repositories::AppState;
-use std::{collections::HashMap, pin::Pin, sync::RwLock};
+use std::{collections::HashMap, sync::RwLock};
 
 
 #[actix_web::main]

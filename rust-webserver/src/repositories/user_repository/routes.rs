@@ -3,16 +3,13 @@ extern crate libc;
 extern crate strfmt;
 use strfmt::strfmt;
 use std::env;
-use actix_web::{post, get, web, HttpRequest, HttpResponse};
+use actix_web::{get, web, HttpRequest, HttpResponse};
 use serde::{Deserialize, Serialize};
 use jsonwebtoken::{decode ,decode_header,  Algorithm, DecodingKey, Validation};
-use actix_web::{http::header::ContentType};
-use futures::future::{err, ok, Ready};
-use actix_web::error::ErrorUnauthorized;
 use std::process::Command;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{SystemTime};
 use rand::distributions::{Alphanumeric, DistString};
-use reqwest::header::{HeaderMap, HeaderName, HeaderValue, USER_AGENT, CONTENT_TYPE};
+use reqwest::header::{HeaderMap};
 use time::OffsetDateTime;
 
 // need to change this later when load balancer giving all correct IP's
@@ -39,9 +36,7 @@ o/api/v1/media/websocket \
     ! rtmpsink location={rtmp_out_location} \
     audiotestsrc is-live=1 wave=ticks \
        ! mux.'";
-use std::process::Child;
-use std::sync::Mutex;
-use std::{collections::HashMap, pin::Pin, sync::RwLock};
+use std::{collections::HashMap, sync::RwLock};
 use libc::{kill, SIGTERM};
 
 // This struct represents state
@@ -212,7 +207,7 @@ async fn stop_recording(_req: HttpRequest, child_processes: web::Data<RwLock<App
     let _split: Vec<&str> = _auth.unwrap().to_str().unwrap().split("Bearer").collect();
     let token = _split[1].trim();
 
-    let mut child_ids = &child_processes.read().unwrap().map;
+    let child_ids = &child_processes.read().unwrap().map;
     let child_os_id = child_ids.get(&params.room_name.to_string());  
     let my_int = child_os_id.unwrap().parse::<i32>().unwrap();
     unsafe {
