@@ -8,6 +8,8 @@ use serde::{Deserialize, Serialize};
 use jsonwebtoken::{decode ,decode_header,  Algorithm, DecodingKey, Validation};
 use std::process::Command;
 use std::time::{SystemTime};
+use chrono::offset::Utc;
+use chrono::DateTime;
 use rand::distributions::{Alphanumeric, DistString};
 use reqwest::header::{HeaderMap};
 use time::OffsetDateTime;
@@ -89,17 +91,16 @@ struct ResponseStop {
     stopped: bool
 }
 
-fn systemtime_strftime<T>(dt: T, format: &str) -> String
-   where T: Into<OffsetDateTime>
-{
-    dt.into().format(format)
+fn systemtime_strftime(dt: SystemTime, format: &str) -> String {
+    let datetime: DateTime<Utc> = dt.into();
+    format!("{}", datetime.format(format))
 }
 
 
 async fn sendDataToPricingService(room_name: String, action: String, authorization_header: String) {
     let mut map = HashMap::new();
     let st = SystemTime::now();
-    let st_str: String= format!("{}", systemtime_strftime(st, "%d/%m/%Y %T"));
+    let st_str: String=  systemtime_strftime(st, "%Y-%m-%dT%TZ");
     map.insert("roomJid", format!("{}@muc.sariska.io", room_name));
     map.insert("timestamp",  st_str);
     map.insert("action", action);
@@ -129,8 +130,8 @@ async fn start_recorging(_req: HttpRequest, child_processes: web::Data<RwLock<Ap
 
     let app: String =  Alphanumeric.sample_string(&mut rand::thread_rng(), 16);
     let stream: String =  Alphanumeric.sample_string(&mut rand::thread_rng(), 16);
-    let location = format!("{}",strfmt!(RTMP_OUT_LOCATION, app, stream).unwrap());
-    let pipeline = format!("{}",strfmt!(GST_MEET_PARAMS_LIVESTREAM, params.room_name, location).unwrap());
+    let location = format!("{}",strfmt!(RTMP_OUT_LOCATION, app.to_string(), stream.to_string()).unwrap());
+    let pipeline = format!("{}",strfmt!(GST_MEET_PARAMS_LIVESTREAM, params.room_name.to_owned(), location).unwrap());
     let _auth = _req.headers().get("Authorization");
     let _split: Vec<&str> = _auth.unwrap().to_str().unwrap().split("Bearer").collect();
     let token = _split[1].trim();
@@ -185,19 +186,24 @@ async fn start_recorging(_req: HttpRequest, child_processes: web::Data<RwLock<Ap
          child_processes.write().unwrap().map.insert(params.room_name.to_string(), child.id().to_string());
         // child_processes.insert(params.room_name.to_string(),child);
 
-        sendDataToPricingService(params.room_name, "start".to_owned(), token.to_owned());
+        sendDataToPricingService(params.room_name.to_string(), "start".to_owned(), token.to_owned());
         
-        let obj = ResponseStart {
-            started: true,
-            hls_url: format!("{}",strfmt!(HLS_URL, app, stream).unwrap()),
-            dash_url: format!("{}",strfmt!(DASH_URL, app, stream).unwrap()),
-            mp3_url: format!("{}",strfmt!(MP3_URL, app, stream).unwrap()),
-            aac_url: format!("{}",strfmt!(AAC_URL, app, stream).unwrap()),
-            rtmp_url: format!("{}",strfmt!(RTMP_URL, app, stream).unwrap()),
-            flv_url: format!("{}",strfmt!(FLV_URL, app, stream).unwrap())
-        };
+        let obj = createResponseStart(app.clone(), stream.clone());
         HttpResponse::Ok().json(obj)
 
+}
+
+fn createResponseStart(app :String, stream: String) -> ResponseStart {
+    let obj = ResponseStart {
+        started: true,
+        hls_url: format!("{}",strfmt!(HLS_URL, app.to_string(), stream.to_string()).unwrap()),
+        dash_url: format!("{}",strfmt!(DASH_URL, app.to_string(), stream.to_string()).unwrap()),
+        mp3_url: format!("{}",strfmt!(MP3_URL, app.to_string(), stream.to_string()).unwrap()),
+        aac_url: format!("{}",strfmt!(AAC_URL, app.to_string(), stream.to_string()).unwrap()),
+        rtmp_url: format!("{}",strfmt!(RTMP_URL, app.to_string(), stream.to_string()).unwrap()),
+        flv_url: format!("{}",strfmt!(FLV_URL, app.to_string(), stream.to_string()).unwrap())
+    };
+    obj
 }
 
 #[get("/stopRecording")]
@@ -213,7 +219,7 @@ async fn stop_recording(_req: HttpRequest, child_processes: web::Data<RwLock<App
     unsafe {
         kill(my_int, SIGTERM);
     }
-    sendDataToPricingService(params.room_name, "stop".to_owned(), token.to_owned());
+    sendDataToPricingService(params.room_name.to_string(), "stop".to_owned(), token.to_owned());
     
     let obj = ResponseStop {
         stopped: true,
