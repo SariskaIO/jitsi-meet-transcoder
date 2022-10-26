@@ -186,7 +186,7 @@ async fn start_recorging(_req: HttpRequest, child_processes: web::Data<RwLock<Ap
          child_processes.write().unwrap().map.insert(params.room_name.to_string(), child.id().to_string());
         // child_processes.insert(params.room_name.to_string(),child);
 
-        sendDataToPricingService(params.room_name.to_string(), "start".to_owned(), token.to_owned());
+        sendDataToPricingService(params.room_name.to_string(), "start".to_owned(), token.to_owned()).await;
         
         let obj = createResponseStart(app.clone(), stream.clone());
         HttpResponse::Ok().json(obj)
@@ -219,7 +219,7 @@ async fn stop_recording(_req: HttpRequest, child_processes: web::Data<RwLock<App
     unsafe {
         kill(my_int, SIGTERM);
     }
-    sendDataToPricingService(params.room_name.to_string(), "stop".to_owned(), token.to_owned());
+    sendDataToPricingService(params.room_name.to_string(), "stop".to_owned(), token.to_owned()).await;
     
     let obj = ResponseStop {
         stopped: true,
