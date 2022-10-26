@@ -96,7 +96,7 @@ fn systemtime_strftime(dt: SystemTime, format: &str) -> String {
 }
 
 
-async fn sendDataToPricingService(room_name: String, action: String, authorization_header: String) {
+async fn send_data_to_pricing_service(room_name: String, action: String, authorization_header: String) {
     let mut map = HashMap::new();
     let st = SystemTime::now();
     let st_str: String=  systemtime_strftime(st, "%Y-%m-%dT%TZ");
@@ -105,14 +105,14 @@ async fn sendDataToPricingService(room_name: String, action: String, authorizati
     map.insert("action", action);
     map.insert("type", "stream".to_owned());            
 
-    let serviceSecretKey = match env::var_os("X-SERVICE-TOKEN") {
+    let service_secret_key = match env::var_os("X-SERVICE-TOKEN") {
         Some(v) => v.into_string().unwrap(),
         None => panic!("$X-SERVICE-TOKEN is not set")
     };
 
     let mut headers = HeaderMap::new();
         headers.insert("Authorization", authorization_header.parse().unwrap());
-        headers.insert("X-SERVICE-TOKEN", serviceSecretKey.parse().unwrap());
+        headers.insert("X-SERVICE-TOKEN", service_secret_key.parse().unwrap());
 
     let client = reqwest::Client::new();
     let res = client.post("https://api.sariska.io/api/v1/pricing/recording")
@@ -138,11 +138,11 @@ async fn start_recorging(_req: HttpRequest, child_processes: web::Data<RwLock<Ap
     let request_url = env::var("SECRET_MANAGEMENT_SERVICE_PUBLIC_KEY_URL").unwrap_or("none".to_string());  
     let kid = "";
 
-   let headerData = match header {
+   let header_data = match header {
         Ok(_token) => _token.kid,
         Err(_e) => None,
     };
-    let kid = headerData.as_deref().unwrap_or("default string");
+    let kid = header_data.as_deref().unwrap_or("default string");
         // create a Sha256 object
     let api_key_url =  format!("{}/{}", request_url, kid);
     let response = reqwest::get(api_key_url)
@@ -150,12 +150,12 @@ async fn start_recorging(_req: HttpRequest, child_processes: web::Data<RwLock<Ap
         .unwrap()
         .text()
         .await;
-    let publicKey  = match response {
+    let public_key  = match response {
         Ok(_publickey)=>_publickey,
         _ => "default string".to_string(),
     };
     
-    let deserialized: PublicKey = serde_json::from_str(&publicKey).unwrap();
+    let deserialized: PublicKey = serde_json::from_str(&public_key).unwrap();
     let decoded_claims = decode::<Claims>(
         &token,
         &DecodingKey::from_rsa_components(&"deserialized.n", &deserialized.e),
@@ -185,14 +185,14 @@ async fn start_recorging(_req: HttpRequest, child_processes: web::Data<RwLock<Ap
          child_processes.write().unwrap().map.insert(params.room_name.to_string(), child.id().to_string());
         // child_processes.insert(params.room_name.to_string(),child);
 
-        sendDataToPricingService(params.room_name.to_string(), "start".to_owned(), token.to_owned()).await;
+        send_data_to_pricing_service(params.room_name.to_string(), "start".to_owned(), token.to_owned()).await;
         
-        let obj = createResponseStart(app.clone(), stream.clone());
+        let obj = create_response_start(app.clone(), stream.clone());
         HttpResponse::Ok().json(obj)
 
 }
 
-fn createResponseStart(app :String, stream: String) -> ResponseStart {
+fn create_response_start(app :String, stream: String) -> ResponseStart {
     let obj = ResponseStart {
         started: true,
         hls_url: format!("{}",strfmt!(HLS_URL, app.to_string(), stream.to_string()).unwrap()),
@@ -218,7 +218,7 @@ async fn stop_recording(_req: HttpRequest, child_processes: web::Data<RwLock<App
     unsafe {
         kill(my_int, SIGTERM);
     }
-    sendDataToPricingService(params.room_name.to_string(), "stop".to_owned(), token.to_owned()).await;
+    send_data_to_pricing_service(params.room_name.to_string(), "stop".to_owned(), token.to_owned()).await;
     
     let obj = ResponseStop {
         stopped: true,
