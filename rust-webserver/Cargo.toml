@@ -11,10 +11,8 @@ actix-rt = "1.1.1"
 serde = {version = "1.0", features = ["derive"]}
 serde_json = "1.0"
 strfmt = "0.2.2"
-bson = "0.14.1"
 jsonwebtoken = "7.1.0"
 envfile = "0.2.1"
-rust-crypto = "0.2.36"
 uuid = { version = "0.8", features = ["serde", "v4"] }
 futures = "0.3.4"
 async-trait = "0.1.57"
@@ -25,5 +23,6 @@ cargo-watch = "8.1.2"
 async-std = { version = "1", features = ["attributes", "tokio1"] }
 libc = "0.2.132"
 rand = "0.8.4"
-time = "0.3.16"
 humantime = "2.1.0"
+rust-crypto = "0.2.36"
+bson = "0.14.1"
