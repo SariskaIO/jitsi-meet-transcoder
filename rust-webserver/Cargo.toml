@@ -28,3 +28,4 @@ async-std = { version = "1", features = ["attributes", "tokio1"] }
 libc = "0.2.132"
 rand = "0.8.4"
 time = "0.3.16"
+humantime = "2.1.0"

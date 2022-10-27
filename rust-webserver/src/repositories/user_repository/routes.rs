@@ -8,8 +8,6 @@ use serde::{Deserialize, Serialize};
 use jsonwebtoken::{decode ,decode_header,  Algorithm, DecodingKey, Validation};
 use std::process::Command;
 use std::time::{SystemTime};
-use chrono::offset::Utc;
-use chrono::DateTime;
 use rand::distributions::{Alphanumeric, DistString};
 use reqwest::header::{HeaderMap};
 
@@ -90,16 +88,10 @@ struct ResponseStop {
     stopped: bool
 }
 
-fn systemtime_strftime(dt: SystemTime, format: &str) -> String {
-    let datetime: DateTime<Utc> = dt.into();
-    format!("{}", datetime.format(format))
-}
-
-
 async fn send_data_to_pricing_service(room_name: String, action: String, authorization_header: String) {
     let mut map = HashMap::new();
-    let st = SystemTime::now();
-    let st_str: String=  systemtime_strftime(st, "%Y-%m-%dT%TZ");
+    let st = SystemTime::now().into();
+    let st_str: String=  humantime::format_rfc3339_seconds(st).to_string();
     map.insert("roomJid", format!("{}@muc.sariska.io", room_name));
     map.insert("timestamp",  st_str);
     map.insert("action", action);
