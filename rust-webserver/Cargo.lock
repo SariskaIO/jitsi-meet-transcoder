@@ -231,7 +231,6 @@ dependencies = [
  "async-trait",
  "bson",
  "cargo-watch",
- "chrono",
  "envfile",
  "futures",
  "humantime",
