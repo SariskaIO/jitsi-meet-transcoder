@@ -152,6 +152,7 @@ struct Origin {
 #[derive(Serialize)]
 struct ResponseVideoStart {
     started: bool,
+    pod_name: String,
     hls_url:  String,
     dash_url: String,
     rtmp_url: String,
@@ -390,6 +391,7 @@ async fn start_recording(_req: HttpRequest, app_state: web::Data<RwLock<AppState
 fn create_response_start_video(app :String, stream: String) -> ResponseVideoStart {
     let obj = ResponseVideoStart {
         started: true,
+        pod_name: env::var("MY_POD_NAME").unwrap_or("none".to_string()),
         hls_url: format!("https://edge.sariska.io/play/hls/{}/{}.m3u8", app, stream),
         hds_url: format!("https://edge.sariska.io/play/hds/{}/{}.f4m", app, stream),
         dash_url: format!("https://edge.sariska.io/play/dash/{}/{}.mpd", app, stream),
