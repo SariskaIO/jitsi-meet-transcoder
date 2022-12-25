@@ -103,13 +103,13 @@ struct Params {
 
 #[derive(Debug, Deserialize, Serialize)]
 struct RtmpParams {
-    r_name: String,
-    a_only: Option<bool>,
-    is_v: Option<bool>,
+    room_name: String,
+    audio_only: Option<bool>,
+    is_vod: Option<bool>,
     uuid: String,
-    is_r: Option<bool>,
-    s_urls: Option<Vec<String>>,
-    s_keys: Option<Vec<StreamKeyDict>>
+    is_recording: Option<bool>,
+    stream_urls: Option<Vec<String>>,
+    stream_keys: Option<Vec<StreamKeyDict>>
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -260,13 +260,13 @@ async fn start_recording(_req: HttpRequest, app_state: web::Data<RwLock<AppState
     let new_uuid = format!("{}", my_uuid.to_simple());
 
     let encoded = serde_json::to_string(&RtmpParams {
-        a_only: params.audio_only,
-        is_v: params.is_vod,
+        audio_only: params.audio_only,
+        is_vod: params.is_vod,
         uuid: new_uuid.to_lowercase(),
-        r_name: params.room_name.clone(),
-        is_r: params.is_recording.clone(),
-        s_keys: params.stream_keys.clone(),
-        s_urls: params.stream_urls.clone()
+        room_name: params.room_name.clone(),
+        is_recording: params.is_recording.clone(),
+        stream_keys: params.stream_keys.clone(),
+        stream_urls: params.stream_urls.clone()
     });
     
     let encoded = match encoded {
