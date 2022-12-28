@@ -292,7 +292,7 @@ async fn start_recording(_req: HttpRequest, app_state: web::Data<RwLock<AppState
 
     if  let None = params.audio_only  {
         location = format!("{}/{}/{}", RTMP_OUT_LOCATION, app, stream);
-        location = format!("{}?token={}&param={}", location, token, encoded);
+        location = format!("{}?param={}", location, encoded);
         gstreamer_pipeline = format!("./gst-meet --web-socket-url=wss://api.sariska.io/api/v1/media/websocket \
         --xmpp-domain=sariska.io  --muc-domain=muc.sariska.io \
         --recv-video-scale-width=640 \
@@ -305,7 +305,7 @@ async fn start_recording(_req: HttpRequest, app_state: web::Data<RwLock<AppState
            ! rtmpsink location={}'", params.room_name, location);
     } else {
         location = format!("{}/{}/{}", RTMP_OUT_LOCATION, app, stream);
-        location = format!("{}?token={}&param={}", location, token, encoded);
+        location = format!("{}?param={}", location, encoded);
         gstreamer_pipeline = format!("./gst-meet --web-socket-url=wss://api.sariska.io/api/v1/media/websocket \
         --xmpp-domain=sariska.io  --muc-domain=muc.sariska.io \
         --room-name={} \
