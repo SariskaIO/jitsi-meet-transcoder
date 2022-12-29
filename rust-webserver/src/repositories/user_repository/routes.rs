@@ -222,34 +222,6 @@ async fn start_recording(_req: HttpRequest, app_state: web::Data<RwLock<AppState
     let mut redis_actor = &app_state.read().unwrap().conn;
     let _auth = _req.headers().get("Authorization");
 
-    let comm = InfoCommandGet {
-        command: "GET".to_string(),
-        arg: format!("production::room_key::{}", params.room_name).to_string(),
-        arg2: None,
-    };
-    let mut run_async = || async move {
-        redis_actor.send(comm).await
-    };
-
-    let result = async move {
-        // AssertUnwindSafe moved to the future
-        std::panic::AssertUnwindSafe(run_async()).catch_unwind().await
-    }.await;        
-
-    match result {
-        Ok(Ok(Ok(Some(value))))  => {
-            let obj = ResponseRecordingAlreadyStarted {
-                started: false,
-                message: "Recording already started".to_string()
-            };
-            return HttpResponse::Ok().json(obj)
-        },
-        Ok(Ok(Ok(None))) => (),
-        Err(_)=> (),
-        Ok(Err(_))=>(),
-        Ok(Ok(Err(_)))=>()
-    }
-
     let mut location;
     let gstreamer_pipeline;
     let _split: Vec<&str> = _auth.unwrap().to_str().unwrap().split("Bearer").collect();
