@@ -29,7 +29,7 @@ impl RedisActor {
                 let ch = msg.get_channel_name();
                 let payload: String = msg.get_payload().unwrap();
                 let decoded: SetRoomInfo  = serde_json::from_str(&payload).unwrap();
-                let hostname = env::var("HOSTNAME").unwrap_or("none".to_string());
+                let hostname = env::var("MY_POD_NAME").unwrap_or("none".to_string());
 
                 println!("{:?} subscribed", decoded);
                 println!("{} hostname", hostname);

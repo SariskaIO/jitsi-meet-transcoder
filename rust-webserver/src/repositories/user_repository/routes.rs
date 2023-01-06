@@ -331,7 +331,7 @@ async fn start_recording(_req: HttpRequest, app_state: web::Data<RwLock<AppState
     .expect("Failed to start ping process");
     println!("Started process: {}", child.id());
     
-    let hostname = env::var("HOSTNAME").unwrap_or("none".to_string());
+    let hostname = env::var("MY_POD_NAME").unwrap_or("none".to_string());
     let room_info = SetRoomInfo {
         room_name: params.room_name.to_string(),
         process_id: child.id().to_string().clone(),
@@ -401,7 +401,7 @@ async fn stop_recording(_req: HttpRequest, app_state: web::Data<RwLock<AppState>
     match result {
         Ok(Ok(Ok(Some(value))))  => {
            let room_info: SetRoomInfo = serde_json::from_str(&value).unwrap();
-           let hostname = env::var("HOSTNAME").unwrap_or("none".to_string());
+           let hostname = env::var("MY_POD_NAME").unwrap_or("none".to_string());
            println!("{:?}", room_info);
            if room_info.hostname == hostname {
                 let my_int = room_info.process_id.parse::<i32>().unwrap();
