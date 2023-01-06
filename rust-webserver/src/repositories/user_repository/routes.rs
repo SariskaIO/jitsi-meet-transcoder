@@ -163,7 +163,8 @@ struct ResponseVideoStart {
 
 #[derive(Serialize)]
 struct ResponseStop {
-    started: bool
+    started: bool,
+    pod_name: String
 }
 
 
@@ -439,6 +440,7 @@ async fn stop_recording(_req: HttpRequest, app_state: web::Data<RwLock<AppState>
     send_data_to_pricing_service(params.room_name.to_string(), "stop".to_owned(), token.to_owned()).await;
     let obj = ResponseStop {
         started: false,
+        pod_name: env::var("MY_POD_NAME").unwrap_or("none".to_string())
     };
     HttpResponse::Ok().json(obj)
 }
