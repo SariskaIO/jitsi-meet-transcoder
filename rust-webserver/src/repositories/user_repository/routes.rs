@@ -403,20 +403,21 @@ async fn stop_recording(_req: HttpRequest, app_state: web::Data<RwLock<AppState>
            let room_info: SetRoomInfo = serde_json::from_str(&value).unwrap();
            let hostname = env::var("MY_POD_NAME").unwrap_or("none".to_string());
            println!("{:?}", room_info);
-
-           if Some(hostname) == room_info.get("hostname") {
-                let my_int = room_info.process_id.parse::<i32>().unwrap();
-                unsafe {
-                    kill(my_int, SIGTERM);
-                }
-           } else {
-                let comm = InfoCommandPublish {
-                    command: "PUBLISH".to_string(),
-                    channel: "sariska_channel_gstreamer".to_string(),
-                    message: value
-                };
-                redis_actor.send(comm).await;
-           }
+           if room_info.hostname != "" {
+               if hostname == room_info.hostname {
+                    let my_int = room_info.process_id.parse::<i32>().unwrap();
+                    unsafe {
+                        kill(my_int, SIGTERM);
+                    }
+               } else {
+                    let comm = InfoCommandPublish {
+                        command: "PUBLISH".to_string(),
+                        channel: "sariska_channel_gstreamer".to_string(),
+                        message: value
+                    };
+                    redis_actor.send(comm).await;
+               }
+            }
         },
         Ok(Ok(Ok(None))) => (),
         Err(_)=> (),

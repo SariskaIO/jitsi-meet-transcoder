@@ -31,13 +31,14 @@ impl RedisActor {
                 let decoded: SetRoomInfo  = serde_json::from_str(&payload).unwrap();
                 let hostname = env::var("MY_POD_NAME").unwrap_or("none".to_string());
 
-                println!("{:?} subscribed", decoded);
                 println!("{} hostname", hostname);
-
-                if Some(hostname) == decoded.get("hostname") {
-                    let my_int = decoded.process_id.parse::<i32>().unwrap();
-                    unsafe {
-                        kill(my_int, SIGTERM);
+                if decoded.hostname != "" {
+                    println!("{:?} subscribed", decoded);
+                    if  hostname == decoded.hostname {
+                        let my_int = decoded.process_id.parse::<i32>().unwrap();
+                        unsafe {
+                            kill(my_int, SIGTERM);
+                        }
                     }
                 }
                 return ControlFlow::Continue;
