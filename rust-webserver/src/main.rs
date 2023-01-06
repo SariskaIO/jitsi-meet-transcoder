@@ -30,7 +30,9 @@ impl RedisActor {
                 let payload: String = msg.get_payload().unwrap();
                 let decoded: SetRoomInfo  = serde_json::from_str(&payload).unwrap();
                 let hostname = env::var("HOSTNAME").unwrap_or("none".to_string());
-                println!("{:?} decoded", decoded);
+
+                println!("{:?} subscribed", decoded);
+                println!("{} hostname", hostname);
 
                 if decoded.hostname == hostname {
                     let my_int = decoded.process_id.parse::<i32>().unwrap();
