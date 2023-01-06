@@ -25,7 +25,7 @@ impl RedisActor {
         let (conn, call) = client.get_multiplexed_async_connection().await.unwrap();
         thread::spawn(move || {
             let mut con = client.get_connection().unwrap();
-            let _ :() =  con.subscribe(&["sariska_channel"], |msg| {
+            let _ :() =  con.subscribe(&["sariska_channel_gstreamer"], |msg| {
                 let ch = msg.get_channel_name();
                 let payload: String = msg.get_payload().unwrap();
                 let decoded: SetRoomInfo  = serde_json::from_str(&payload).unwrap();
@@ -34,7 +34,7 @@ impl RedisActor {
                 println!("{:?} subscribed", decoded);
                 println!("{} hostname", hostname);
 
-                if decoded.hostname == hostname {
+                if Some(hostname) == decoded.get("hostname") {
                     let my_int = decoded.process_id.parse::<i32>().unwrap();
                     unsafe {
                         kill(my_int, SIGTERM);
