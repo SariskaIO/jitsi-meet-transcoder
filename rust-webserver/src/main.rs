@@ -37,6 +37,7 @@ impl RedisActor {
                     if  hostname == decoded.hostname {
                         let my_int = decoded.process_id.parse::<i32>().unwrap();
                         unsafe {
+                            println!(" killed process id {} ", my_int);
                             kill(my_int, SIGTERM);
                         }
                     }

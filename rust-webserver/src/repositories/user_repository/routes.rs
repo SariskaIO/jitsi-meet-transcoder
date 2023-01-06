@@ -330,6 +330,9 @@ async fn start_recording(_req: HttpRequest, app_state: web::Data<RwLock<AppState
     .spawn()
     .expect("Failed to start ping process");
     println!("Started process: {}", child.id());
+
+    println!("{} print child process id", child.id().to_string());
+
     
     let hostname = env::var("MY_POD_NAME").unwrap_or("none".to_string());
     let room_info = SetRoomInfo {
