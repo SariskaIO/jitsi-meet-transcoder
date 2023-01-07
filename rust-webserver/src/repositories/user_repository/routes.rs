@@ -21,7 +21,8 @@ use serde_json::Error;
 use uuid::Uuid;
 use std::io::{BufRead, BufReader};
 use std::thread;
-
+use nix::unistd::Pid;
+use nix::sys::signal::{self, Signal};
 
 #[derive(Message, Debug)]
 #[rtype(result = "Result<Option<String>, redis::RedisError>")]
@@ -411,7 +412,7 @@ async fn stop_recording(_req: HttpRequest, app_state: web::Data<RwLock<AppState>
                if hostname == room_info.hostname {
                     let my_int = room_info.process_id.parse::<i32>().unwrap();
                     unsafe {
-                        kill(my_int, SIGTERM);
+                        signal::kill(Pid::from_raw(my_int), Signal::SIGTERM).unwrap();
                     }
                } else {
                     let comm = InfoCommandPublish {
