@@ -107,6 +107,7 @@ struct RtmpParams {
     audio_only: Option<bool>,
     is_vod: Option<bool>,
     uuid: String,
+    pod_ip: String,
     is_recording: Option<bool>,
     stream_urls: Option<Vec<String>>,
     stream_keys: Option<Vec<StreamKeyDict>>
@@ -237,6 +238,7 @@ async fn start_recording(_req: HttpRequest, app_state: web::Data<RwLock<AppState
         uuid: new_uuid.to_lowercase(),
         room_name: params.room_name.clone(),
         is_recording: params.is_recording.clone(),
+        pod_ip: env::var("MY_POD_NAME").unwrap_or("none".to_string()),
         stream_keys: params.stream_keys.clone(),
         stream_urls: params.stream_urls.clone()
     });
