@@ -326,9 +326,9 @@ async fn start_recording(_req: HttpRequest, app_state: web::Data<RwLock<AppState
     let child = Command::new("sh")
     .arg("-c")
     .arg(gstreamer_pipeline)
-    .stdout(Stdio::piped())
     .spawn()
-    .expect("Failed to start ping process");
+    .expect("failed to execute process");
+    
     println!("Started process: {}", child.id());
 
     println!("{} print child process id", child.id().to_string());
