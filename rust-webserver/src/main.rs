@@ -18,6 +18,8 @@ use actix::prelude::*;
 use actix::Message;
 use libc::{kill, SIGTERM};
 use serde_json::Error;
+use nix::unistd::Pid;
+use nix::sys::signal::{self, Signal};
 
 impl RedisActor {
     pub async fn new(redis_url: String) -> Self {
@@ -38,7 +40,7 @@ impl RedisActor {
                         let my_int = decoded.process_id.parse::<i32>().unwrap();
                         unsafe {
                             println!(" killed process id {} ", my_int);
-                            kill(my_int, SIGTERM);
+                            signal::kill(Pid::from_raw(my_int), Signal::SIGTERM).unwrap();
                         }
                     }
                 }
