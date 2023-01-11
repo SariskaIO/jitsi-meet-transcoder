@@ -108,6 +108,7 @@ struct RtmpParams {
     audio_only: Option<bool>,
     is_vod: Option<bool>,
     uuid: String,
+    owner_id: String,
     pod_ip: String,
     is_recording: Option<bool>,
     stream_urls: Option<Vec<String>>,
@@ -233,9 +234,47 @@ async fn start_recording(_req: HttpRequest, app_state: web::Data<RwLock<AppState
     let my_uuid = Uuid::new_v4();
     let new_uuid = format!("{}", my_uuid.to_simple());
 
+    let header  =  decode_header(&token);
+    let request_url = env::var("SECRET_MANAGEMENT_SERVICE_PUBLIC_KEY_URL").unwrap_or("none".to_string());
+    
+    let header_data = match header {
+        Ok(_token) => _token.kid,
+        Err(_e) => None,
+    };
+    let kid = header_data.as_deref().unwrap_or("default string");
+        // create a Sha256 object
+    let api_key_url =  format!("{}/{}", request_url, kid);
+    println!("{:?}", api_key_url);
+    let decoded_claims;
+    let claims;
+    let response = minreq::get(api_key_url).send();
+    match response {
+            Ok(response)=>{
+                let public_key = response.as_str().unwrap_or("default");
+                let deserialized: PublicKey = serde_json::from_str(&public_key).unwrap();
+                decoded_claims = decode::<Claims>(
+                    &token,
+                    &DecodingKey::from_rsa_components(&deserialized.n, &deserialized.e),
+        &Validation::new(Algorithm::RS256));
+                    match decoded_claims {
+                        Ok(v) => {
+                            claims = v;
+                        },
+                        Err(e) => {
+                        println!("Error decoding json: {:?}", e);
+                        return HttpResponse::Unauthorized().json("{}");
+                        },
+                    }
+            },
+            _=>{
+                return HttpResponse::Unauthorized().json("{}");
+            }
+    }
+  
     let encoded = serde_json::to_string(&RtmpParams {
         audio_only: params.audio_only,
         is_vod: params.is_vod,
+        owner_id: claims.claims.context.group,
         uuid: new_uuid.to_lowercase(),
         room_name: params.room_name.clone(),
         is_recording: params.is_recording.clone(),
@@ -289,42 +328,6 @@ async fn start_recording(_req: HttpRequest, app_state: web::Data<RwLock<AppState
            ! rtmpsink location={}'", params.room_name, location);
     }
 
-    println!("{}", gstreamer_pipeline);
-    let header  =  decode_header(&token);
-    let request_url = env::var("SECRET_MANAGEMENT_SERVICE_PUBLIC_KEY_URL").unwrap_or("none".to_string());
-    
-    let header_data = match header {
-        Ok(_token) => _token.kid,
-        Err(_e) => None,
-    };
-    let kid = header_data.as_deref().unwrap_or("default string");
-        // create a Sha256 object
-    let api_key_url =  format!("{}/{}", request_url, kid);
-    println!("{:?}", api_key_url);
-
-    let response = minreq::get(api_key_url).send();
-    match response {
-            Ok(response)=>{
-                let public_key = response.as_str().unwrap_or("default");
-                let deserialized: PublicKey = serde_json::from_str(&public_key).unwrap();
-                let decoded_claims = decode::<Claims>(
-                    &token,
-                    &DecodingKey::from_rsa_components(&deserialized.n, &deserialized.e),
-        &Validation::new(Algorithm::RS256));
-                    match decoded_claims {
-                        Ok(v) => {
-                        },
-                        Err(e) => {
-                        println!("Error decoding json: {:?}", e);
-                        return HttpResponse::Unauthorized().json("{}");
-                        },
-                    }
-            },
-            _=>{
-                return HttpResponse::Unauthorized().json("{}");
-            }
-    }
-  
     let child = Command::new("sh")
     .arg("-c")
     .arg(gstreamer_pipeline)
