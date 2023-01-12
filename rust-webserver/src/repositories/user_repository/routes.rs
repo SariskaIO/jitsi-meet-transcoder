@@ -161,6 +161,7 @@ struct ResponseVideoStart {
     rtmp_url: String,
     flv_url: String,
     srt_url: String,
+    vod_url: String,
     hds_url: String,
 }
 
@@ -365,17 +366,18 @@ async fn start_recording(_req: HttpRequest, app_state: web::Data<RwLock<AppState
     };
     redis_actor.send(comm).await;
     send_data_to_pricing_service(params.room_name.to_string(), "start".to_owned(), token.to_owned()).await;
-    let obj = create_response_start_video(app.clone(), stream.clone());
+    let obj = create_response_start_video(app.clone(), stream.clone(), new_uuid.clone());
     HttpResponse::Ok().json(obj)
 }
 
-fn create_response_start_video(app :String, stream: String) -> ResponseVideoStart {
+fn create_response_start_video(app :String, stream: String, uuid: String) -> ResponseVideoStart {
     let obj = ResponseVideoStart {
         started: true,
         pod_name: env::var("MY_POD_NAME").unwrap_or("none".to_string()),
         hls_url: format!("https://edge.sariska.io/play/hls/{}/{}.m3u8", app, stream),
         hds_url: format!("https://edge.sariska.io/play/hds/{}/{}.f4m", app, stream),
         dash_url: format!("https://edge.sariska.io/play/dash/{}/{}.mpd", app, stream),
+        vod_url: format!("https://edge.sariska.io/terraform/v1/hooks/vod/hls/{}.m3u8", uuid),
         rtmp_url: format!("rtmp://a1888dceaa234469683e47544f5f0d33-c703d14b936b1688.elb.ap-south-1.amazonaws.com:1935/{}/{}", app, stream),
         flv_url: format!("http://a1888dceaa234469683e47544f5f0d33-c703d14b936b1688.elb.ap-south-1.amazonaws.com:8080/{}/{}.flv", app, stream),
         srt_url: format!("srt://a23d4c35634a24dd8a0a932f57f40380-f2266220d83cf36b.elb.ap-south-1.amazonaws.com:10080?streamid=#!::r={}/{},m=request", app, stream),
